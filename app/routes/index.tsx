@@ -23,7 +23,7 @@ export default function Index() {
         {
           posts.map((post)=>(
           <li key={post.id}>
-            <Post header={post.title}>
+            <Post header={post.title} authorName={post.author.email}>
               {post.body}
             </Post>
           </li>))
