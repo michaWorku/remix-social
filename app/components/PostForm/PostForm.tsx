@@ -1,26 +1,29 @@
-import type {ComponentPropsWithoutRef} from 'react'
+import { Button } from '../Button'
 import type {Props} from './types'
 
-const PostForm = ({
-  error = {},
-  fields = {title: '', body: ''},
-  ...props
-}: Props & ComponentPropsWithoutRef<'form'>) =>{
+function PostForm({error, fields, method = 'post', ...props}: Props) {
   return (
-    <form className="flex flex-col" {...props}>
-      <div className="mb-4 flex flex-col">
+    <form className="flex flex-col gap-4" method={method} {...props}>
+      <div className="flex flex-col">
         <label htmlFor="title" className="mb-2 text-gray-600">
           Title
         </label>
         <input
+          defaultValue={fields?.title}
           className="p-4"
           name="title"
           placeholder="Title of your post"
-          defaultValue={fields?.title}
         />
-        {error?.fieldErrors?.title && <p>{error.fieldErrors.title}</p>}
+        {
+          error?.fieldErrors?.title?.map((title, index)=>(
+                <p key = {index} className="text-red-500">{title}</p>
+          ))
+        }
+        {/* {false && error?.fieldErrors?.title?.length > 0 && (
+          <p className="text-red-500">{error?.fieldErrors?.title?.toString()}</p>
+        )} */}
       </div>
-      <div className="mb-8 flex flex-col">
+      <div className="mb-4 flex flex-col">
         <label htmlFor="body" className="mb-2 text-gray-600">
           Body
         </label>
@@ -30,15 +33,19 @@ const PostForm = ({
           name="body"
           placeholder="Write something amazing"
         />
-        {error?.fieldErrors?.body && <p>{error.fieldErrors.body}</p>}
+        {
+          error?.fieldErrors?.body?.map((body, index)=>(
+            <p key = {index} className="text-red-500">{body}</p>
+          ))
+        }
+        {/* {false && error?.fieldErrors?.body && (
+          <p className="text-red-500">{error?.fieldErrors?.body[0]}</p>
+        )} */}
       </div>
-      {error.formError && <p>{error.formError}</p>}
-      <button
-        type="submit"
-        className="transition rounded text-blue-700 font-bold py-4 px-6 transparent hover:bg-gray-100"
-      >
+      {error?.formError?.map((formError, index)=>(<p key = {index} className="text-red-500">{formError}</p>))}
+      <Button type="submit" className='border border-blue-500'>
         Create Post
-      </button>
+      </Button>
     </form>
   )
 }
