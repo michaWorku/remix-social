@@ -1,29 +1,36 @@
 import type {User} from '@prisma/client'
-
-import {hashPassword} from './auth-utils.server'
-import {db} from './db.server'
+import {Authenticator, AuthorizationError} from 'remix-auth'
+import {FormStrategy} from 'remix-auth-form'
+import {
+  getSession,
+  commitSession,
+  destroySession,
+} from '~/services/session.server'
+import { userLogin } from './users.server'
+import {Login} from './validations'
 
 export type SessionUser = Omit<User, 'hashedPassword'>
+export const authenticator = new Authenticator<SessionUser>({
+  getSession,
+  commitSession,
+  destroySession,
+})
 
-export const userSignup = async (email: string, password: string) => {
-  const hashedPassword = await hashPassword(password)
-  return db.user.create({
-    data: {
-      email,
-      hashedPassword,
-    },
-    select: {
-      email: true,
-      createdAt: true,
-      id: true,
-      name: true,
-      role: true,
-      updatedAt: true,
-    },
-  })
-}
+export const USER_LOGIN = 'user-login'
+authenticator.use(
+  new FormStrategy(async ({form, context}) => {
+    const rawEmail = form.get('email')
+    const rawPassword = form.get('password')
 
-export const checkUserExists = async (email: string) =>
-  (await db.user.count({
-    where: {email},
-  })) > 0
+    const {email, password} = Login.parse({
+      email: rawEmail,
+      password: rawPassword,
+    })
+
+    console.log('parsed data')
+    const user = await userLogin(email, password)
+    console.log('logged user in', {user})
+    return user
+  }),
+  USER_LOGIN,
+)

@@ -1,7 +1,7 @@
 import type {ActionFunction} from '@remix-run/node'
 import {redirect} from '@remix-run/node'
 import {UserForm} from '~/components/UserForm'
-import {checkUserExists, userSignup} from '~/services/auth.server'
+import {checkUserExists, userSignup} from '~/services/users.server'
 import {useActionData, useTransition} from '@remix-run/react'
 import { badRequest } from '~/services/utils-server'
 import { Signup } from '~/services/validations'
