@@ -1,6 +1,6 @@
 import {z} from 'zod'
 
 export const CreatePost = z.object({
-    title: z.string().optional(),
-    body: z.string().min(1)
+  title: z.string().min(4),
+  body: z.string().min(10),
 })

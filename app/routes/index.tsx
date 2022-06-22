@@ -1,9 +1,10 @@
-import { ActionFunction, json, LoaderFunction, redirect } from "@remix-run/node";
-import { useActionData, useLoaderData } from "@remix-run/react";
-import { Post } from "~/components/Post";
-import { PostForm } from "~/components/PostForm";
-import { createPost, getPosts } from "~/services/posts.server";
-import { CreatePost } from "~/services/validation";
+import type {ActionFunction, LoaderFunction} from '@remix-run/node'
+import {redirect, json} from '@remix-run/node'
+import {useActionData, useLoaderData} from '@remix-run/react'
+import {createPost, getPosts} from '~/services/posts.server'
+import {Post as PostComponent} from '~/components/Post'
+import {PostForm} from '~/components/PostForm'
+import {CreatePost} from '~/services/validations'
 
 type LoaderData = {
   posts: Awaited<ReturnType<typeof getPosts>>
@@ -13,13 +14,13 @@ type ActionData = {
   error: {
     formError?: string[]
     fieldErrors?: {
-      title: string[]
-      body: string[]
+      title?: string[]
+      body?: string[]
     }
   }
   fields: {
-    title: string
-    body: string
+    title?: string
+    body?: string
   }
 }
 
@@ -27,50 +28,58 @@ export const action: ActionFunction = async ({request}) => {
   const form = await request.formData()
   const rawTitle = form.get('title')
   const rawBody = form.get('body')
-
   const result = CreatePost.safeParse({title: rawTitle, body: rawBody})
 
   if (!result.success) {
     return json(
-      {error: result.error.flatten(), fields: {title: rawTitle, body: rawBody}},
+      {
+        error: result.error.flatten(),
+        fields: {
+          title: rawTitle,
+          body: rawBody,
+        },
+      },
       {status: 400},
     )
   }
 
-  const post = await createPost({
+  await createPost({
     title: result.data.title ?? null,
     body: result.data.body,
+    authorId: 'bad-id',
   })
 
   return redirect('/')
 }
 
-export const loader: LoaderFunction =async () => {
-  const data = {posts: await getPosts()}
-
-  return json<LoaderData>(data)
+export const loader: LoaderFunction = async () => {
+  const data: LoaderData = {posts: await getPosts()}
+  return json(data)
 }
 
 export default function Index() {
-  const {posts} = useLoaderData() as LoaderData
-  const formData = useActionData() as ActionData
-  
+  const {posts} = useLoaderData<LoaderData>()
+  const formData = useActionData<ActionData>()
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.4" }}>
-      <h1 className="text-3xl font-bold underline">Welcome to Remix</h1>
-      <div className="mb-8">
-        <PostForm method="post" action="/?index" error={formData.error} fields={formData.fields} />
-      </div>
-      <ul>
-        {
-          posts.map((post)=>(
-          <li key={post.id}>
-            <Post header={post.title} authorName={post.author.email}>
+    <div className="m-8 flex flex-col items-center gap-8">
+      <h1 className="text-xl">Remix Social</h1>
+      <PostForm
+        action="/?index"
+        error={formData?.error}
+        fields={formData?.fields}
+      />
+      <ul className="flex flex-col gap-4">
+        {posts.map((post) => (
+          <li key={post.body}>
+            <PostComponent
+              header={post?.title}
+              authorName={post?.author?.email}
+            >
               {post.body}
-            </Post>
-          </li>))
-        }
+            </PostComponent>
+          </li>
+        ))}
       </ul>
     </div>
-  );
+  )
 }
