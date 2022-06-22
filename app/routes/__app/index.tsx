@@ -26,6 +26,7 @@ type ActionData = {
 }
 
 export const action: ActionFunction = async ({request}) => {
+  const user =  await authenticator.isAuthenticated(request, {failureRedirect: '/login'})
   const form = await request.formData()
   const rawTitle = form.get('title')
   const rawBody = form.get('body')
@@ -47,7 +48,7 @@ export const action: ActionFunction = async ({request}) => {
   await createPost({
     title: result.data.title ?? null,
     body: result.data.body,
-    authorId: 'bad-id',
+    authorId: user.id,
   })
 
   return redirect('/')
